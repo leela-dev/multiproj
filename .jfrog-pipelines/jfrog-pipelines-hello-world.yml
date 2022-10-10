@@ -2,35 +2,35 @@ template: true   # required for local templates d
 valuesFilePath: ./values.yml
 
 resources:
-  - name: myFirstRepo
+  - name: multiproj
     type: GitRepo
     configuration:
       # SCM integration where the repo is located
-      gitProvider: {{ .Values.myFirstRepo.gitProvider }} # this will be replaced from values.yml
+      gitProvider: {{ .Values.multiproj.gitProvider }} # this will be replaced from values.yml
       # Repository path, including org name/repo name
-      path: {{ .Values.myFirstRepo.path }} # this will be replaced from values.yml
+      path: {{ .Values.multiproj.path }} # this will be replaced from values.yml
       cancelPendingRunsOn:
         newCommit: true
       branches:
         # Specifies which branches will trigger dependent steps
         include: ^{{gitBranch}}$
 
-  - name: myPropertyBag
+  - name: leelaProp
     type: PropertyBag
     configuration:
       commitSha: 1
       runID: 1
 
 pipelines:
-  - name: my_pipeline_1
+  - name: leela_multi_pipeline
     steps:
-      - name: p1_s1
+      - name: step1
         type: Bash
         configuration:
           timeoutSeconds: 200
           inputResources:
             # Sets up step to be triggered when there are commit events to myFirstRepo
-            - name: myFirstRepo
+            - name: multiproj
         execution:
           onExecute:
             - sleep 10
@@ -45,23 +45,23 @@ pipelines:
             # Pipeline state documentation: https://www.jfrog.com/confluence/display/JFROG/Creating+Stateful+Pipelines#CreatingStatefulPipelines-PipelineState
             - echo "Previous run ID is $prev_runid"
 
-      - name: p1_s2
+      - name: step2
         type: Bash
         configuration:
           inputSteps:
-            - name: p1_s1
+            - name: step1
         execution:
           onExecute:
             # Demonstrates the availability of an env variable written to run state during p1_s1
             - echo $current_runid
 
-      - name: p1_s3
+      - name: step3
         type: Bash
         configuration:
           inputSteps:
-            - name: p1_s1
+            - name: step1
           outputResources:
-            - name: myPropertyBag
+            - name: leelaProp
         execution:
           onExecute:
             - echo $current_runid
@@ -71,15 +71,3 @@ pipelines:
             # Dependent pipelines can be configured to trigger when this resource is updated
             # Utility functions documentation: https://www.jfrog.com/confluence/display/JFROG/Pipelines+Utility+Functions
             - write_output myPropertyBag commitSha=$commitSha runID=$current_runid
-  - name: my_pipeline_2
-    steps:
-      - name: p2_s1
-        type: Bash
-        configuration:
-          inputResources:
-            # Sets up step to be triggered when myPropertyBag is updated
-            - name: myPropertyBag
-        execution:
-          onExecute:
-            # Retrieves the commitSha from input resource
-            - echo "CommitSha is $res_myPropertyBag_commitSha"
