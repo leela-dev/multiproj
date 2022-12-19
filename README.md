@@ -6,6 +6,3 @@ Detailed instructions on how to run this sample, as well as explanation of the c
 documentation::
 
 [Pipelines Example: Hello World](https://www.jfrog.com/confluence/display/JFROG/Pipeline+Example%3A+Hello+World).
-
-
-Testtt
